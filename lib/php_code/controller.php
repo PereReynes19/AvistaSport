@@ -1,34 +1,34 @@
 <?php 
   $db = "camaras"; //database name
-  $dbuser = "root"; //database username
-  $dbpassword = ""; //database password
+  $dbuser = "root"; //database nombre
+  $dbpass = ""; //database pass
   $dbhost = "localhost"; //database host
 
   $return["error"] = false;
   $return["message"] = "";
   $return["success"] = false;
 
-  $link = mysqli_connect($dbhost, $dbuser, $dbpassword, $db);
+  $link = mysqli_connect($dbhost, $dbuser, $dbpass, $db);
 
-  if(isset($_POST["username"]) && isset($_POST["password"])){
+  if(isset($_POST["nombre"]) && isset($_POST["pass"])){
        //checking if there is POST data
 
-       $username = $_POST["username"];
-       $password = $_POST["password"];
+       $nombre = $_POST["nombre"];
+       $pass = $_POST["pass"];
 
-       $username = mysqli_real_escape_string($link, $username);
+       $nombre = mysqli_real_escape_string($link, $nombre);
        //escape inverted comma query conflict from string
 
-       $sql = "SELECT * FROM usuarios WHERE nombre = '$username'";
+       $sql = "SELECT * FROM usuarios WHERE nombre = '$nombre'";
        //building SQL query
        $res = mysqli_query($link, $sql);
        $numrows = mysqli_num_rows($res);
        //check if there is any row
        if($numrows > 0){
-           //is there is any data with that username
+           //is there is any data with that nombre
            $obj = mysqli_fetch_object($res);
            //get row as object
-           if(md5($password) == $obj->password){
+           if(md5($pass) == $obj->pass){
                $return["success"] = true;
                $return["uid"] = $obj->user_id;
                $return["fullname"] = $obj->fullname;
