@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -21,14 +22,14 @@ class TextoController extends State<Login> {
   final _pwdController = TextEditingController(); //Crear el controlador
 
   startLogin() async {
-    String apiurl = "http://192.168.1.63/test/controller.php"; //api url
+    final responseBody = {
+      'nombre': _userController.text, //get the username textbecaris
+      'pass': _pwdController.text //get password text
+    };
+    //String apiurl = "http://192.168.1.63/test/controller.php"; //api url
+    var apiurl = 'http://192.168.10.190/test/controller.php'; //api url
 
-    print('Usuaario: $username');
-
-    var response = await http.post(Uri.parse(apiurl), body: {
-      'username': username, //get the username text
-      'password': password //get password text
-    });
+    final response = await http.post(apiurl, body: jsonEncode(responseBody));
 
     if (response.statusCode == 200) {
       var jsondata = json.decode(response.body);
@@ -43,16 +44,15 @@ class TextoController extends State<Login> {
         if (jsondata["success"]) {
           setState(() {
             print('succes');
-            Navigator.push(context, MaterialPageRoute(builder: (context) => Partidos()));
+            Navigator.push(
+                context, MaterialPageRoute(builder: (context) => Partidos()));
             error = false;
             showprogress = false;
           });
           //save the data returned from server
           //and navigate to home page
-          String uid = jsondata["uid"];
-          String fullname = jsondata["fullname"];
-          String address = jsondata["address"];
-          print(fullname);
+          String token = jsondata["token"];
+          String userId = jsondata["id"];
           //user shared preference to save data
         } else {
           showprogress = false; //don't show progress indicator
@@ -68,55 +68,82 @@ class TextoController extends State<Login> {
       });
     }
   }
+
   @override
   void dispose() {
     // Clean up the controller when the widget is disposed.
+    _userController.dispose();
     _pwdController.dispose();
     super.dispose();
   }
 
+  @override
+  void initState() {
+    username = "";
+    password = "";
+    errormsg = "";
+    error = false;
+    showprogress = false;
+
+    //_username.text = "defaulttext";
+    //_password.text = "defaultpassword";
+    super.initState();
+  }
+
   Widget build(BuildContext context) {
-    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
-        statusBarColor: logo,
-      //color set to transperent or set your own color
-    ));
-    return Scaffold (
-      appBar: AppBar (
-        title: Text('LOGIN', style: TextStyle(fontFamily: 'Arial', fontSize: 20, fontWeight: FontWeight.bold),),
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(
+          'LOGIN',
+          style: TextStyle(
+              fontFamily: 'Arial', fontSize: 20, fontWeight: FontWeight.bold),
+        ),
         backgroundColor: logo,
       ),
-      body: SingleChildScrollView (
+      body: SingleChildScrollView(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
-          children: <Widget> [
+          children: <Widget>[
             Padding(
               padding: const EdgeInsets.only(top: 60.0),
-              child: Center (
-                child: GestureDetector (
+              child: Center(
+                child: GestureDetector(
                   onTap: _launchURL,
-                  child: Image.network('https://www.ibred.es/avista/wp-content/uploads/2019/07/ibred-logo-cmyk-2019.png', height: 100, width: 300, ),
+                  child: Image.network(
+                    'https://www.ibred.es/avista/wp-content/uploads/2019/07/ibred-logo-cmyk-2019.png',
+                    height: 100,
+                    width: 300,
+                  ),
                 ),
               ),
             ),
             Padding(
-              padding: const EdgeInsets.only( top: 15.0),
-              child: Center (
-                child: Text('AVISTA SPORTS', textAlign: TextAlign.center, style: TextStyle(fontFamily: 'Luminari', fontSize: 30, fontWeight: FontWeight.bold),),
+              padding: const EdgeInsets.only(top: 15.0),
+              child: Center(
+                child: Text(
+                  'AVISTA SPORTS',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                      fontFamily: 'Luminari',
+                      fontSize: 30,
+                      fontWeight: FontWeight.bold),
+                ),
               ),
             ),
             Container(
               //show error message here
-              margin: EdgeInsets.only(top:30),
+              margin: EdgeInsets.only(top: 30),
               padding: EdgeInsets.all(10),
-              //child:error? errmsg(errormsg):Container(),
+              child: error ? errmsg(errormsg) : Container(),
               //if error == true then show error message
               //else set empty container as child
             ),
             Padding(
-              padding: const EdgeInsets.only(left:15.0,right: 15.0,top:45,bottom: 0),
+              padding: const EdgeInsets.only(
+                  left: 15.0, right: 15.0, top: 45, bottom: 0),
               //padding: EdgeInsets.symmetric(horizontal: 15),
-              child: TextField(
+              child: TextFormField(
                 controller: _userController,
                 decoration: InputDecoration(
                     border: OutlineInputBorder(),
@@ -125,8 +152,9 @@ class TextoController extends State<Login> {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.only(left:15.0,right: 15.0,top:25,bottom: 0),
-              child: TextField(
+              padding: const EdgeInsets.only(
+                  left: 15.0, right: 15.0, top: 25, bottom: 0),
+              child: TextFormField(
                 controller: _pwdController,
                 obscureText: true,
                 autocorrect: false,
@@ -138,15 +166,20 @@ class TextoController extends State<Login> {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.only(left:35.0,right: 35.0,top:55,bottom: 0),
+              padding: const EdgeInsets.only(
+                  left: 35.0, right: 35.0, top: 55, bottom: 0),
               child: ElevatedButton(
-                onPressed: () => {
-                startLogin()
-                },
+                onPressed: () => {startLogin()},
                 style: ButtonStyle(
                   backgroundColor: MaterialStateProperty.all<Color>(logo),
                 ),
-                child: Text('INICIA SESION', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20, color: Colors.white),),
+                child: Text(
+                  'INICIA SESION',
+                  style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 20,
+                      color: Colors.white),
+                ),
               ),
             ),
           ],
@@ -154,19 +187,19 @@ class TextoController extends State<Login> {
       ),
     );
   }
-  Widget errmsg(String text){
+
+  Widget errmsg(String text) {
     //error message widget.
     return Container(
-      padding: EdgeInsets.all(15.00),
-      margin: EdgeInsets.only(bottom: 10.00),
+      padding:
+          const EdgeInsets.only(left: 15.0, right: 15.0, top: 7, bottom: 7),
       decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(30),
           color: Colors.red,
-          border: Border.all(color:Colors.red[300], width:2)
-      ),
+          border: Border.all(color: Colors.red[300], width: 2)),
       child: Row(children: <Widget>[
         Container(
-          margin: EdgeInsets.only(right:6.00),
+          margin: EdgeInsets.only(right: 6.00),
           child: Icon(Icons.info, color: Colors.white),
         ), // icon for error message
 
