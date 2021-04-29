@@ -1,68 +1,61 @@
 import 'dart:convert';
-import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_app/Constructors/Eventos.dart';
+import 'package:flutter_app/Preferences/user_preferences.dart';
+import 'package:flutter_app/pages/eventos_page.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/cupertino.dart';
 
 import 'package:flutter_app/pages/login_page.dart';
-import 'package:flutter_app/pages/partidos_page.dart';
 
 class TextoController extends State<Login> {
   static const logo = const Color.fromRGBO(0, 168, 45, 1);
 
   String errormsg;
-  bool error, showprogress;
-  String username, password;
+  bool error, isLogged;
+  String username, password, tokenApp, userId;
 
   final _userController = TextEditingController();
   final _pwdController = TextEditingController(); //Crear el controlador
 
   startLogin() async {
     final responseBody = {
-      'nombre': _userController.text, //get the username textbecaris
+      'nombre': _userController.text, //get the username text
       'pass': _pwdController.text //get password text
     };
-    //String apiurl = "http://192.168.1.63/test/controller.php"; //api url
-    var apiurl = 'http://192.168.10.190/test/controller.php'; //api url
+    var apiurl = "http://192.168.1.45/test/controller.php"; //api url
+    //var apiurl = 'http://192.168.10.199/test/controller.php'; //api url
 
     final response = await http.post(apiurl, body: jsonEncode(responseBody));
+    final PreferenciasUsuario prefs = new PreferenciasUsuario();
 
     if (response.statusCode == 200) {
       var jsondata = json.decode(response.body);
       if (jsondata["error"]) {
         setState(() {
           print('error');
-          showprogress = false; //don't show progress indicator
           error = true;
           errormsg = jsondata["message"];
         });
       } else {
-        if (jsondata["success"]) {
-          setState(() {
-            print('succes');
-            Navigator.push(
-                context, MaterialPageRoute(builder: (context) => Partidos()));
-            error = false;
-            showprogress = false;
-          });
-          //save the data returned from server
-          //and navigate to home page
-          String token = jsondata["token"];
-          String userId = jsondata["id"];
-          //user shared preference to save data
-        } else {
-          showprogress = false; //don't show progress indicator
-          error = true;
-          errormsg = "Something went wrong.";
-        }
+        Map events = (await downloadJSON());
+        Navigator.push(context,
+            MaterialPageRoute(builder: (context) => CustomEventosLV(events)));
+        error = false;
+
+        //save the data returned from server
+        //and navigate to home page
+        tokenApp = jsondata["token_app"];
+        userId = jsondata["id"];
+
+        prefs.setToken = tokenApp;
+        //userId = prefs.getUserId('id');
+        //shared preference to save data
       }
     } else {
       setState(() {
-        showprogress = false; //don't show progress indicator
         error = true;
         errormsg = "Error during connecting to server.";
       });
@@ -83,10 +76,8 @@ class TextoController extends State<Login> {
     password = "";
     errormsg = "";
     error = false;
-    showprogress = false;
+    isLogged = false;
 
-    //_username.text = "defaulttext";
-    //_password.text = "defaultpassword";
     super.initState();
   }
 
@@ -169,7 +160,7 @@ class TextoController extends State<Login> {
               padding: const EdgeInsets.only(
                   left: 35.0, right: 35.0, top: 55, bottom: 0),
               child: ElevatedButton(
-                onPressed: () => {startLogin()},
+                onPressed: () => startLogin(),
                 style: ButtonStyle(
                   backgroundColor: MaterialStateProperty.all<Color>(logo),
                 ),
@@ -194,15 +185,14 @@ class TextoController extends State<Login> {
       padding:
           const EdgeInsets.only(left: 15.0, right: 15.0, top: 7, bottom: 7),
       decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(30),
+          borderRadius: BorderRadius.circular(20),
           color: Colors.red,
           border: Border.all(color: Colors.red[300], width: 2)),
       child: Row(children: <Widget>[
         Container(
-          margin: EdgeInsets.only(right: 6.00),
+          margin: EdgeInsets.only(right: 8.00),
           child: Icon(Icons.info, color: Colors.white),
         ), // icon for error message
-
         Text(text, style: TextStyle(color: Colors.white, fontSize: 18)),
         //show error message text
       ]),
@@ -216,5 +206,13 @@ class TextoController extends State<Login> {
     } else {
       throw 'Could not launch $url';
     }
+  }
+
+  Future<Map<String, dynamic>> downloadJSON() async {
+    final jsonEndpoint = "http://192.168.1.45/test/partidos.php";
+
+    final resp = await http.get(jsonEndpoint);
+    Map eventos = json.decode(resp.body);
+    return eventos;
   }
 }
