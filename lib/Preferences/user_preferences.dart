@@ -19,13 +19,14 @@ class PreferenciasUsuario {
   deletePrefs() async {
     this._prefs = await SharedPreferences.getInstance();
     await _prefs.remove('token_app');
+    await _prefs.remove('groupId');
   }
 
   initPrefs() async {
     this._prefs = await SharedPreferences.getInstance();
   }
 
-  // GET y SET de la última página
+  // GET y SET
   get getToken {
     return _prefs.getString('token_app') ?? '';
   }
@@ -39,6 +40,14 @@ class PreferenciasUsuario {
   }
 
   set setUserId(String value) {
+    _prefs.setString('id', value);
+  }
+
+  get getGroupId {
+    return _prefs.getString('id') ?? '';
+  }
+
+  set setGroupId(String value) {
     _prefs.setString('id', value);
   }
 }

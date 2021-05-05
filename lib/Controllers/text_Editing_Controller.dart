@@ -1,7 +1,6 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_app/Constructors/Eventos.dart';
 import 'package:flutter_app/Preferences/user_preferences.dart';
 import 'package:flutter_app/pages/eventos_page.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -15,7 +14,7 @@ class TextoController extends State<Login> {
 
   String errormsg;
   bool error, isLogged;
-  String username, password, tokenApp, userId;
+  String username, password, tokenApp, userId, groupId;
 
   final _userController = TextEditingController();
   final _pwdController = TextEditingController(); //Crear el controlador
@@ -25,8 +24,8 @@ class TextoController extends State<Login> {
       'nombre': _userController.text, //get the username text
       'pass': _pwdController.text //get password text
     };
-    var apiurl = "http://192.168.1.45/test/controller.php"; //api url
-    //var apiurl = 'http://192.168.10.199/test/controller.php'; //api url
+    //var apiurl = "http://192.168.1.49/test/controller.php"; //api url
+    var apiurl = 'http://192.168.10.199/test/controller.php'; //api url
 
     final response = await http.post(apiurl, body: jsonEncode(responseBody));
     final PreferenciasUsuario prefs = new PreferenciasUsuario();
@@ -40,19 +39,25 @@ class TextoController extends State<Login> {
           errormsg = jsondata["message"];
         });
       } else {
-        Map events = (await downloadJSON());
-        Navigator.push(context,
-            MaterialPageRoute(builder: (context) => CustomEventosLV(events)));
+        tokenApp = jsondata["token_app"];
+        userId = jsondata["userId"];
+        groupId = jsondata["groupId"];
+
+        prefs.setToken = tokenApp;
+        prefs.setGroupId = groupId;
+        //shared preference to save data
+
+        List events = (await downloadJSON());
+        tokenApp = jsondata["token_app"];
+
+        Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) => CustomEventosLV(eventos: events)));
         error = false;
 
         //save the data returned from server
         //and navigate to home page
-        tokenApp = jsondata["token_app"];
-        userId = jsondata["id"];
-
-        prefs.setToken = tokenApp;
-        //userId = prefs.getUserId('id');
-        //shared preference to save data
       }
     } else {
       setState(() {
@@ -208,11 +213,21 @@ class TextoController extends State<Login> {
     }
   }
 
-  Future<Map<String, dynamic>> downloadJSON() async {
-    final jsonEndpoint = "http://192.168.1.45/test/partidos.php";
+  Future<List<dynamic>> downloadJSON() async {
+    final PreferenciasUsuario prefs = new PreferenciasUsuario();
+    groupId = prefs.getGroupId;
+    print(groupId);
+    final jsonEndpoint = "http://192.168.10.199/test/partidos.php?id=$groupId";
 
     final resp = await http.get(jsonEndpoint);
-    Map eventos = json.decode(resp.body);
-    return eventos;
+    Map<String, dynamic> eventos = json.decode(resp.body);
+
+    if (eventos['result'] == '200') {
+      List<dynamic> datosEventos = json.decode(eventos['data'][0]);
+      return datosEventos;
+    } else {
+      return [];
+    }
+    //List<Map<String, dynamic>> eventos = new List<Map<String, dynamic>>.from(json.decode(resp.body));
   }
 }
