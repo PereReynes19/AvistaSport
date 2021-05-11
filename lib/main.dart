@@ -17,7 +17,7 @@ void main() async {
 
   await prefs.initPrefs();
 
-  eventos = await lista.downloadJSON();
+  eventos = await lista.downloadJSON(prefs.getGroupId);
 
   if (prefs.getToken == '') {
     initialRoute = Login.routeName;

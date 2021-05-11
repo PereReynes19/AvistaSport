@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_app/Preferences/user_preferences.dart';
@@ -25,7 +26,7 @@ class TextoController extends State<Login> {
       'pass': _pwdController.text //get password text
     };
     //var apiurl = "http://192.168.1.49/test/controller.php"; //api url
-    var apiurl = 'http://192.168.10.199/test/controller.php'; //api url
+    var apiurl = 'http://172.20.101.245//test/controller.php'; //api url
 
     final response = await http.post(apiurl, body: jsonEncode(responseBody));
     final PreferenciasUsuario prefs = new PreferenciasUsuario();
@@ -47,7 +48,7 @@ class TextoController extends State<Login> {
         prefs.setGroupId = groupId;
         //shared preference to save data
 
-        List events = (await downloadJSON());
+        List events = (await downloadJSON(prefs.getGroupId));
         tokenApp = jsondata["token_app"];
 
         Navigator.push(
@@ -89,6 +90,7 @@ class TextoController extends State<Login> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         title: Text(
           'LOGIN',
           style: TextStyle(
@@ -96,89 +98,91 @@ class TextoController extends State<Login> {
         ),
         backgroundColor: logo,
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: <Widget>[
-            Padding(
-              padding: const EdgeInsets.only(top: 60.0),
-              child: Center(
-                child: GestureDetector(
-                  onTap: _launchURL,
-                  child: Image.network(
-                    'https://www.ibred.es/avista/wp-content/uploads/2019/07/ibred-logo-cmyk-2019.png',
-                    height: 100,
-                    width: 300,
+      body: WillPopScope(
+        onWillPop: () => exit(0),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: <Widget>[
+              Padding(
+                padding: const EdgeInsets.only(top: 60.0),
+                child: Center(
+                  child: GestureDetector(
+                    onTap: _launchURL,
+                    child: Image.network(
+                      'https://www.ibred.es/avista/wp-content/uploads/2019/07/ibred-logo-cmyk-2019.png',
+                      height: 100,
+                      width: 300,
+                    ),
                   ),
                 ),
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.only(top: 15.0),
-              child: Center(
-                child: Text(
-                  'AVISTA SPORTS',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                      fontFamily: 'Luminari',
-                      fontSize: 30,
-                      fontWeight: FontWeight.bold),
+              Padding(
+                padding: const EdgeInsets.only(top: 15.0),
+                child: Center(
+                  child: Text(
+                    'AVISTA SPORTS',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                        fontFamily: 'Luminari',
+                        fontSize: 30,
+                        fontWeight: FontWeight.bold),
+                  ),
                 ),
               ),
-            ),
-            Container(
-              //show error message here
-              margin: EdgeInsets.only(top: 30),
-              padding: EdgeInsets.all(10),
-              child: error ? errmsg(errormsg) : Container(),
-              //if error == true then show error message
-              //else set empty container as child
-            ),
-            Padding(
-              padding: const EdgeInsets.only(
-                  left: 15.0, right: 15.0, top: 45, bottom: 0),
-              //padding: EdgeInsets.symmetric(horizontal: 15),
-              child: TextFormField(
-                controller: _userController,
-                decoration: InputDecoration(
+              Container(
+                //show error message here
+                margin: EdgeInsets.only(top: 30),
+                padding: EdgeInsets.all(10),
+                child: error ? errmsg(errormsg) : Container(),
+                //if error == true then show error message
+                //else set empty container as child
+              ),
+              Padding(
+                padding: const EdgeInsets.only(
+                    left: 15.0, right: 15.0, top: 45.0, bottom: 0),
+                child: TextFormField(
+                  controller: _userController,
+                  decoration: InputDecoration(
+                      border: OutlineInputBorder(),
+                      labelText: 'Usuario',
+                      hintText: 'Usuario'),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(
+                    left: 15.0, right: 15.0, top: 25, bottom: 0),
+                child: TextFormField(
+                  controller: _pwdController,
+                  obscureText: true,
+                  autocorrect: false,
+                  decoration: InputDecoration(
                     border: OutlineInputBorder(),
-                    labelText: 'Usuario',
-                    hintText: 'Usuario'),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.only(
-                  left: 15.0, right: 15.0, top: 25, bottom: 0),
-              child: TextFormField(
-                controller: _pwdController,
-                obscureText: true,
-                autocorrect: false,
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(),
-                  labelText: 'Contraseña',
-                  hintText: 'Contraseña',
+                    labelText: 'Contraseña',
+                    hintText: 'Contraseña',
+                  ),
                 ),
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.only(
-                  left: 35.0, right: 35.0, top: 55, bottom: 0),
-              child: ElevatedButton(
-                onPressed: () => startLogin(),
-                style: ButtonStyle(
-                  backgroundColor: MaterialStateProperty.all<Color>(logo),
-                ),
-                child: Text(
-                  'INICIA SESION',
-                  style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 20,
-                      color: Colors.white),
+              Padding(
+                padding: const EdgeInsets.only(
+                    left: 35.0, right: 35.0, top: 55, bottom: 0),
+                child: ElevatedButton(
+                  onPressed: () => startLogin(),
+                  style: ButtonStyle(
+                    backgroundColor: MaterialStateProperty.all<Color>(logo),
+                  ),
+                  child: Text(
+                    'INICIA SESION',
+                    style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 20,
+                        color: Colors.white),
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -213,11 +217,12 @@ class TextoController extends State<Login> {
     }
   }
 
-  Future<List<dynamic>> downloadJSON() async {
+  Future<List<dynamic>> downloadJSON(groupId) async {
     final PreferenciasUsuario prefs = new PreferenciasUsuario();
-    groupId = prefs.getGroupId;
-    print(groupId);
-    final jsonEndpoint = "http://192.168.10.199/test/partidos.php?id=$groupId";
+    //groupId = prefs.getGroupId;
+    //print(groupId);
+    final jsonEndpoint =
+        "http://172.20.101.245//test/partidos.php?id=" + groupId;
 
     final resp = await http.get(jsonEndpoint);
     Map<String, dynamic> eventos = json.decode(resp.body);
