@@ -79,14 +79,10 @@ class CustomEventosLV extends StatelessWidget {
             width: MediaQuery.of(context).size.width,
             child: GestureDetector(
                 child: Card(
-                  elevation: 5.0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(11.0),
-                  ),
+                  elevation: 6.0,
                   margin: EdgeInsets.all(10.0),
-                  semanticContainer: false,
                   shadowColor: Colors.grey,
-                  color: Color.fromRGBO(205, 205, 205, 1),
+                  color: Colors.white,
                   child: Column(
                     children: <Widget>[
                       Padding(

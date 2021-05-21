@@ -110,8 +110,8 @@ class TextoController extends State<Login> {
                 child: Center(
                   child: GestureDetector(
                     onTap: _launchURL,
-                    child: Image.network(
-                      'https://www.ibred.es/avista/wp-content/uploads/2019/07/ibred-logo-cmyk-2019.png',
+                    child: Image.asset(
+                      'assets/ibred.png',
                       height: 100,
                       width: 300,
                     ),
